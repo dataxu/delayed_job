@@ -16,6 +16,7 @@ module Delayed
     DEFAULT_DELAY_JOBS       = true
     DEFAULT_QUEUES           = []
     DEFAULT_READ_AHEAD       = 5
+    DEFAULT_MAX_ERROR_LENGTH = 10000
 
     cattr_accessor :min_priority, :max_priority, :max_attempts, :max_run_time,
                    :default_priority, :sleep_delay, :logger, :delay_jobs, :queues,
@@ -207,7 +208,7 @@ module Delayed
       job_say job, format('COMPLETED after %.4f', runtime)
       return true  # did work
     rescue DeserializationError => error
-      job.last_error = "#{error.message}\n#{error.backtrace.join("\n")}"
+      job.last_error = "#{error.message[0,DEFAULT_MAX_ERROR_LENGTH]}\n#{error.backtrace.join("\n")}"
       failed(job)
     rescue => error
       self.class.lifecycle.run_callbacks(:error, self, job) { handle_failed_job(job, error) }
@@ -265,11 +266,12 @@ module Delayed
       job.max_run_time || self.class.max_run_time
     end
 
+
   protected
 
     def handle_failed_job(job, error)
-      job.last_error = "#{error.message}\n#{error.backtrace.join("\n")}"
-      job_say job, "FAILED (#{job.attempts} prior attempts) with #{error.class.name}: #{error.message}", 'error'
+      job.last_error = "#{error.message[0,DEFAULT_MAX_ERROR_LENGTH]}\n#{error.backtrace.join("\n")}"
+      job_say job, "FAILED (#{job.attempts} prior attempts) with #{error.class.name}: #{error.message[0,DEFAULT_MAX_ERROR_LENGTH]}", 'error'
       reschedule(job)
     end
 
