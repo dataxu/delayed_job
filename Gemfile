@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'rake'
+gem 'rake', '~> 10.4'
 
 platforms :ruby do
-  gem 'sqlite3'
+  gem 'sqlite3', '= 1.3.13'
 end
 
 platforms :jruby do
@@ -16,6 +16,7 @@ platforms :rbx do
 end
 
 group :test do
+  gem 'minitest', '~> 4.7.5'
   if ENV['RAILS_VERSION'] == 'edge'
     gem 'activerecord', :github => 'rails/rails'
     gem 'actionmailer', :github => 'rails/rails'
