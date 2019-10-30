@@ -5,7 +5,7 @@ def gemname = 'delayed_job'
 def gemspec = 'delayed_job.gemspec'
 def region = 'us-east-1'
 
-def dockerImg = "${JOB_NAME}-builder".toLowerCase()
+def docker_img = "${JOB_NAME}-builder".toLowerCase()
 def general_docker = new dataxu.docker.general(this)
 def ruby_utils = new dataxu.ruby.utils()
 
@@ -50,7 +50,7 @@ pipeline {
                 }
                 sh """
                    chmod +x ${env.WORKSPACE}/push.sh
-                   docker build -t ${dockerImg} .
+                   docker build -t ${docker_img} .
                    """
             }
             post {
@@ -62,7 +62,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh """
-                   docker run ${dockerImg} bundler exec rake
+                   docker run ${docker_img} bundler exec rake
                    """
             }
             post {
@@ -77,7 +77,7 @@ pipeline {
             }
             steps {
                 sh """
-                   docker run ${dockerImg} /bin/bash -c "gem build ${gemspec}; ./push.sh"
+                   docker run ${docker_img} /bin/bash -c "gem build ${gemspec}; ./push.sh"
                    """
             }
             post {
@@ -90,7 +90,7 @@ pipeline {
     post {
         always {
             script {
-                general_docker.delete_image(dockerImg)
+                general_docker.delete_image(docker_img)
                 github_notify_status(stage_name: 'Pipeline complete')
             }
         }
